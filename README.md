@@ -39,3 +39,15 @@ network scale.
 5. **Tableau dashboard** — one-page interactive view (KPI cards, carrier
    comparison, warehouse × carrier heatmap, weekly trend) with carrier
    and warehouse filters, built for non-technical stakeholders.
+
+Key findings
+Overall SLA breach rate: 54.9%
+Carrier B (Expedited) breaches SLA at 84.7%, more than double Carrier A (38.3%) and well above Carrier C (46.5%)
+Carrier B's breach rate is uniform across all 12 warehouses (82.9%–87.5%, a 4.6-point spread) — ruling out a regional/fulfillment explanation
+Order characteristics (discount rate, price, quantity, profit ratio) are statistically indistinguishable across carriers — ruling out "Carrier B just gets harder orders" as an explanation
+Despite carrying only ~35% of shipment volume, Carrier B accounts for 53.6% of all network SLA breaches
+STL decomposition shows the problem has been chronic and stable since 2015, not a recent spike and not self-correcting — no seasonal or trend effect explains it away
+
+Conclusion: the SLA breach problem is isolated to a single carrier's performance, not warehouse operations or order mix — pointing directly at a carrier contract/SLA renegotiation rather than an internal fulfillment fix.
+
+Full write-up with methodology detail: docs/findings.md
