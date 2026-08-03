@@ -62,19 +62,40 @@ fulfillment fix.
  
 Full write-up with methodology detail: [`docs/findings.md`](docs/findings.md)
  
+ ## Dashboard
+
+![Dashboard overview](docs/images/dashboard_overview.png)
+
+Interactive Tableau dashboard with click-to-filter: selecting a carrier
+or warehouse filters the entire page. Published version:
+[link once you publish to Tableau Public]
+
+![Carrier x Warehouse heatmap](docs/images/carrier_heatmap.png)
+*Breach rate by warehouse and carrier — Carrier B is red across every
+single region, proving the problem is carrier-wide, not regional.*
+
+![Weekly trend by carrier](docs/images/weekly_trend.png)
+*Carrier B (red) has sat well above the network average for the entire
+3-year period — a chronic issue, not a recent spike.*
+```
+
+
 ## Project structure
- 
+
 ```
 supply-chain-delay-analysis/
-├── 01_clean_and_explore.ipynb   # full analysis notebook, run top to bottom
+├── README.md
+├── 01_clean_and_explore.ipynb    # full analysis, run top to bottom
 ├── data/
-│   ├── raw/                     # DataCoSupplyChainDataset.csv (download from Kaggle)
-│   └── processed/                # cleaned CSV, SQLite DB, saved chart images
-├── sql/
-│   └── analysis_queries.sql     # the actual SQL queries used, cleaned up for reference
+│   ├── raw/                       # DataCoSupplyChainDataset.csv (download from Kaggle)
+│   └── processed/                 # cleaned CSV, SQLite DB
 ├── docs/
-│   └── findings.md              # full findings write-up
-└── tableau/                      # .twbx dashboard file
+│   ├── findings.md                # full write-up
+│   └── images/                    # dashboard screenshots
+├── sql/
+│   └── analysis_queries.sql       # reference SQL queries
+└── tableau/
+    └── Supply_chain_dashboard.twbx
 ```
  
 ## Reproducing this
