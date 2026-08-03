@@ -81,21 +81,18 @@ single region, proving the problem is carrier-wide, not regional.*
 
 
 ## Project structure
-
+ 
 ```
 supply-chain-delay-analysis/
-├── README.md
-├── 01_clean_and_explore.ipynb    # full analysis, run top to bottom
+├── 01_clean_and_explore.ipynb   # full analysis notebook, run top to bottom
 ├── data/
-│   ├── raw/                       # DataCoSupplyChainDataset.csv (download from Kaggle)
-│   └── processed/                 # cleaned CSV, SQLite DB
-├── docs/
-│   ├── findings.md                # full write-up
-│   └── images/                    # dashboard screenshots
+│   ├── raw/                     # DataCoSupplyChainDataset.csv (download from Kaggle)
+│   └── processed/                # cleaned CSV, SQLite DB, saved chart images
 ├── sql/
-│   └── analysis_queries.sql       # reference SQL queries
-└── tableau/
-    └── Supply_chain_dashboard.twbx
+│   └── analysis_queries.sql     # the actual SQL queries used, cleaned up for reference
+├── docs/
+│   └── findings.md              # full findings write-up
+└── tableau/                      # .twbx dashboard file
 ```
  
 ## Reproducing this
