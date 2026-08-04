@@ -79,20 +79,24 @@ single region, proving the problem is carrier-wide, not regional.*
 3-year period — a chronic issue, not a recent spike.*
 ```
 
-
 ## Project structure
- 
-```
+
+```text
 supply-chain-delay-analysis/
 ├── 01_clean_and_explore.ipynb   # full analysis notebook, run top to bottom
 ├── data/
 │   ├── raw/                     # DataCoSupplyChainDataset.csv (download from Kaggle)
-│   └── processed/                # cleaned CSV, SQLite DB, saved chart images
+│   └── processed/               # cleaned CSV, SQLite DB, saved chart images
 ├── sql/
-│   └── analysis_queries.sql     # the actual SQL queries used, cleaned up for reference
+│   └── analysis_queries.sql     # SQL queries
 ├── docs/
-│   └── findings.md              # full findings write-up
-└── tableau/                      # .twbx dashboard file
+│   ├── findings.md
+│   └── images/
+│       ├── dashboard_overview.png
+│       ├── carrier_heatmap.png
+│       └── weekly_trend.png
+└── tableau/
+    └── supply_chain_dashboard.twbx
 ```
  
 ## Reproducing this
