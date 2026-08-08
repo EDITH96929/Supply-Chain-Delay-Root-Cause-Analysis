@@ -465,6 +465,6 @@ Possible extensions include:
 
 Data Analyst | SQL | Python | Tableau
 
-GitHub: https://github.com/yourusername
+GitHub: https://github.com/EDITH96929
 
-LinkedIn: https://linkedin.com/in/yourprofile
+LinkedIn: [https://linkedin.com/in/yourprofile](https://www.linkedin.com/in/sunil-kumar-swain-584660288/)
