@@ -1,115 +1,470 @@
-# Supply chain delay root cause analysis
- 
-Identifying why shipments breach SLA, and proving the cause with data —
-built end to end from a public logistics dataset using SQL, Python, and
-Tableau.
- 
-**Stack:** Python (Pandas, statsmodels, seaborn) · SQL (SQLite) · Tableau
- 
+# Supply Chain Delay Root Cause Analysis
+
+A complete end-to-end data analytics project that identifies **why shipments breach Service Level Agreements (SLAs)** by systematically testing competing hypotheses using **SQL, Python, statistical analysis, and Tableau**.
+
+Instead of simply showing where delays occur, this project answers the more important business question:
+
+> **Are shipment delays caused by warehouse operations, carrier performance, or the type of orders being shipped?**
+
+Using statistical evidence and exploratory analysis, the project rules out alternative explanations until the primary root cause is isolated.
+
 ---
-## The question
- 
-Shipments were breaching SLA at a high rate. Is it a warehouse problem, a
-carrier problem, or a symptom of what kind of orders get shipped? The
-analysis rules out alternatives one at a time until only one explanation
-survives.
- 
-## Dataset
- 
-[DataCo Smart Supply Chain for Big Data Analysis](https://www.kaggle.com/datasets/shashwatwork/dataco-smart-supply-chain-for-big-data-analysis)
-(Kaggle, public). ~180K order line items; sampled to 50,000 shipment
-records for this analysis. `Order Region` was collapsed into 12 warehouse
-buckets, `Shipping Mode` into 3 carrier tiers, to match a realistic
-network scale.
 
-## Method
- 
-1. **Clean** — parsed dates, computed `delay_days` and `sla_breach`,
-   bucketed 23 raw regions into 12 warehouses and 4 shipping modes into 3
-   carriers.
-2. **SQL** — aggregated breach rate by warehouse, by carrier, and by
-   warehouse × carrier route to find where breaches concentrate.
-3. **Correlation analysis** — checked order-level features (discount
-   rate, price, quantity, profit ratio) against breach risk, and compared
-   those features across carriers, to rule out "harder orders" as a
-   confound.
-4. **Time-series decomposition (STL)** — split the weekly breach-rate
-   series into trend, seasonal, and residual components to check whether
-   the problem was worsening, seasonal, or chronic.
-5. **Tableau dashboard** — one-page interactive view (KPI cards, carrier
-   comparison, warehouse × carrier heatmap, weekly trend) with carrier
-   and warehouse filters, built for non-technical stakeholders.
-## Key findings
- 
-- Overall SLA breach rate: **54.9%**
-- **Carrier B (Expedited)** breaches SLA at **84.7%**, more than double
-  Carrier A (38.3%) and well above Carrier C (46.5%)
-- Carrier B's breach rate is **uniform across all 12 warehouses**
-  (82.9%–87.5%, a 4.6-point spread) — ruling out a regional/fulfillment
-  explanation
-- Order characteristics (discount rate, price, quantity, profit ratio)
-  are **statistically indistinguishable across carriers** — ruling out
-  "Carrier B just gets harder orders" as an explanation
-- Despite carrying only ~35% of shipment volume, Carrier B accounts for
-  **53.6% of all network SLA breaches**
-- STL decomposition shows the problem has been **chronic and stable
-  since 2015**, not a recent spike and not self-correcting — no seasonal
-  or trend effect explains it away
-**Conclusion:** the SLA breach problem is isolated to a single carrier's
-performance, not warehouse operations or order mix — pointing directly
-at a carrier contract/SLA renegotiation rather than an internal
-fulfillment fix.
- 
-Full write-up with methodology detail: [`docs/findings.md`](docs/findings.md)
- 
- ## Dashboard
+## Project Overview
 
-![Dashboard overview](docs/images/dashboard_overview.png)
+Late deliveries increase logistics costs, reduce customer satisfaction, and directly impact business performance. Operations teams often struggle to determine whether delays originate from fulfillment centers, transportation providers, or differences in order complexity.
 
-Interactive Tableau dashboard with click-to-filter: selecting a carrier
-or warehouse filters the entire page. Published version:
-[link once you publish to Tableau Public]
+This project performs a structured root cause analysis on a public logistics dataset to identify the primary driver behind SLA breaches.
 
-![Carrier x Warehouse heatmap](docs/images/carrier_heatmap.png)
-*Breach rate by warehouse and carrier — Carrier B is red across every
-single region, proving the problem is carrier-wide, not regional.*
+The analysis follows an evidence-based approach:
 
-![Weekly trend by carrier](docs/images/weekly_trend.png)
-*Carrier B (red) has sat well above the network average for the entire
-3-year period — a chronic issue, not a recent spike.*
+1. Clean and prepare shipment data.
+2. Measure SLA breach rates across warehouses and carriers.
+3. Test whether delayed shipments are associated with different order characteristics.
+4. Analyze long-term trends to determine whether delays are seasonal or persistent.
+5. Build an interactive Tableau dashboard for operational decision-making.
+
+---
+
+# Business Question
+
+The project investigates three competing hypotheses.
+
+### Hypothesis 1
+**Warehouse operations are responsible for late shipments.**
+
+If true, certain warehouses should consistently perform worse than others.
+
+---
+
+### Hypothesis 2
+**Carrier performance is responsible for late shipments.**
+
+If true, one carrier should consistently exhibit significantly higher breach rates regardless of warehouse.
+
+---
+
+### Hypothesis 3
+**Certain carriers simply receive more difficult orders.**
+
+If true, delayed carriers should handle shipments with significantly different characteristics such as:
+
+- larger quantities
+- higher discounts
+- more expensive products
+- lower profit margins
+
+The analysis tests each hypothesis individually until only one explanation remains supported by the data.
+
+---
+
+# Dataset
+
+**Source**
+
+DataCo Smart Supply Chain for Big Data Analysis
+
+https://www.kaggle.com/datasets/shashwatwork/dataco-smart-supply-chain-for-big-data-analysis
+
+### Dataset Size
+
+- Original dataset: ~180,000 order line items
+- Sample used: **50,000 shipment records**
+- Public logistics dataset
+
+For analysis, several variables were simplified to better resemble a realistic logistics network.
+
+- 23 geographic regions → **12 warehouse groups**
+- 4 shipping modes → **3 carrier tiers**
+
+---
+
+# Tech Stack
+
+| Tool | Purpose |
+|-------|----------|
+| Python | Data cleaning & statistical analysis |
+| Pandas | Data manipulation |
+| NumPy | Numerical operations |
+| SQLite | SQL analysis |
+| Statsmodels | STL time-series decomposition |
+| Matplotlib | Visualizations |
+| Seaborn | Statistical plots |
+| Tableau | Interactive dashboard |
+
+---
+
+# Analysis Workflow
+
+## 1. Data Cleaning
+
+The raw dataset was cleaned using Pandas.
+
+Major preprocessing steps included:
+
+- parsing shipment dates
+- removing invalid records
+- calculating shipment delay
+- creating SLA breach flags
+- grouping regions into warehouse buckets
+- grouping shipping modes into carrier categories
+
+Two important derived variables were created:
+
+### Delay Days
+
+```
+delay_days = actual_delivery_date - scheduled_delivery_date
 ```
 
-## Project structure
+### SLA Breach
+
+```
+sla_breach = 1 if delay_days > 0 else 0
+```
+
+---
+
+## 2. SQL Analysis
+
+SQLite was used to aggregate shipment performance across different operational dimensions.
+
+The analysis calculated:
+
+- overall SLA breach rate
+- warehouse-level breach rate
+- carrier-level breach rate
+- warehouse × carrier breach matrix
+- shipment volumes
+- contribution of each carrier to network delays
+
+These summaries helped identify where delays were concentrated.
+
+---
+
+## 3. Correlation & Confounding Analysis
+
+A higher breach rate alone does not necessarily imply poor carrier performance.
+
+A carrier may simply receive more difficult shipments.
+
+To test this possibility, the project compared the following variables across carriers:
+
+- Discount Rate
+- Product Price
+- Quantity Ordered
+- Profit Ratio
+
+Statistical comparisons showed these variables were nearly identical across carriers.
+
+This ruled out order complexity as a meaningful explanation for Carrier B's poor performance.
+
+---
+
+## 4. Time-Series Analysis
+
+Weekly SLA breach rates were aggregated into a time series.
+
+STL (Seasonal-Trend decomposition using LOESS) was used to separate the series into:
+
+- Trend
+- Seasonal component
+- Residual noise
+
+The objective was to determine whether delays were:
+
+- seasonal,
+- gradually worsening,
+- or consistently present over time.
+
+---
+
+## 5. Dashboard Development
+
+A one-page Tableau dashboard was created for non-technical stakeholders.
+
+The dashboard includes:
+
+- Executive KPI cards
+- Carrier comparison
+- Warehouse performance
+- Warehouse × Carrier heatmap
+- Weekly breach trend
+- Interactive filters
+
+Selecting any warehouse or carrier dynamically updates every visualization.
+
+---
+
+# Dashboard
+
+## Overview
+
+*(Insert Tableau dashboard screenshot here)*
+
+Published Tableau Dashboard:
+
+> **Add Tableau Public link after publishing**
+
+---
+
+### Dashboard Features
+
+- Overall SLA KPI
+- Breach Rate by Carrier
+- Warehouse Comparison
+- Warehouse × Carrier Heatmap
+- Weekly Trend
+- Interactive Filters
+
+---
+
+# Key Findings
+
+## Overall Network Performance
+
+- **Overall SLA Breach Rate:** **54.9%**
+
+More than half of all shipments failed to meet their delivery SLA.
+
+---
+
+## Carrier Performance
+
+Carrier performance varied dramatically.
+
+| Carrier | SLA Breach Rate |
+|----------|----------------:|
+| Carrier A | 38.3% |
+| Carrier B | **84.7%** |
+| Carrier C | 46.5% |
+
+Carrier B breached SLA at more than **twice the rate** of Carrier A.
+
+---
+
+## Warehouse Analysis
+
+Carrier B performed poorly in **every warehouse**.
+
+Across all 12 warehouse groups:
+
+- Lowest breach rate: **82.9%**
+- Highest breach rate: **87.5%**
+
+Spread:
+
+```
+Only 4.6 percentage points
+```
+
+Because the problem appears consistently across every warehouse, warehouse operations are unlikely to be the primary cause.
+
+---
+
+## Order Mix Analysis
+
+Order characteristics were compared across carriers.
+
+Variables examined:
+
+- Discount Rate
+- Product Price
+- Quantity
+- Profit Ratio
+
+The distributions were statistically indistinguishable.
+
+This indicates Carrier B was **not** assigned more difficult shipments.
+
+---
+
+## Network Impact
+
+Although Carrier B handled approximately **35%** of shipment volume, it generated:
+
+**53.6% of all SLA breaches**
+
+This made Carrier B the largest contributor to network-wide delivery failures.
+
+---
+
+## Time-Series Findings
+
+STL decomposition showed:
+
+- no meaningful seasonality
+- no upward trend
+- no evidence of gradual operational deterioration
+
+Instead, Carrier B consistently remained above the network average throughout the observation period.
+
+The problem was chronic rather than temporary.
+
+---
+
+# Final Conclusion
+
+The evidence systematically eliminates alternative explanations.
+
+### Warehouse Operations
+
+❌ Not supported
+
+Carrier B underperformed in every warehouse.
+
+---
+
+### Order Characteristics
+
+❌ Not supported
+
+Shipment complexity remained consistent across carriers.
+
+---
+
+### Carrier Performance
+
+✅ Strongly supported
+
+Carrier B consistently exhibited significantly higher SLA breach rates across all warehouses and throughout the full time period.
+
+The findings suggest that operational improvement efforts should focus on **carrier contract evaluation, SLA enforcement, or transportation provider replacement** rather than warehouse process optimization.
+
+---
+
+# Project Structure
 
 ```text
 supply-chain-delay-analysis/
-├── 01_clean_and_explore.ipynb   # full analysis notebook, run top to bottom
+│
+├── 01_clean_and_explore.ipynb
+│
 ├── data/
-│   ├── raw/                     # DataCoSupplyChainDataset.csv (download from Kaggle)
-│   └── processed/               # cleaned CSV, SQLite DB, saved chart images
+│   ├── raw/
+│   │   └── DataCoSupplyChainDataset.csv
+│   │
+│   └── processed/
+│       ├── shipments.csv
+│       ├── supply_chain.db
+│       └── chart_exports/
+│
 ├── sql/
-│   └── analysis_queries.sql     # SQL queries
+│   └── analysis_queries.sql
+│
 ├── docs/
 │   ├── findings.md
 │   └── images/
 │       ├── dashboard_overview.png
 │       ├── carrier_heatmap.png
 │       └── weekly_trend.png
-└── tableau/
-    └── supply_chain_dashboard.twbx
+│
+├── tableau/
+│   └── supply_chain_dashboard.twbx
+│
+└── README.md
 ```
- 
-## Reproducing this
- 
-1. Download the dataset from the Kaggle link above into `data/raw/`
-2. `pip install pandas numpy statsmodels matplotlib seaborn sqlalchemy --break-system-packages`
-3. Open `01_clean_and_explore.ipynb` in Jupyter and run all cells top to bottom
-4. Open the Tableau dashboard, pointed at `data/processed/shipments.csv`
-## Limitations
- 
-- Public dataset, not live production data — the methodology is real,
-  the specific numbers are illustrative of the approach rather than an
-  actual company's operations.
-- "Estimated delay cost" (if included in the dashboard) uses
-  `benefit_per_order` as a rough proxy, not an audited cost model.
- 
+
+---
+
+# How to Reproduce
+
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/supply-chain-delay-analysis.git
+```
+
+---
+
+## 2. Download the dataset
+
+Download the dataset from Kaggle and place it inside:
+
+```
+data/raw/
+```
+
+---
+
+## 3. Install dependencies
+
+```bash
+pip install pandas numpy matplotlib seaborn statsmodels sqlalchemy
+```
+
+---
+
+## 4. Run the notebook
+
+Open
+
+```
+01_clean_and_explore.ipynb
+```
+
+Run all cells sequentially.
+
+---
+
+## 5. Explore the Dashboard
+
+Open
+
+```
+tableau/supply_chain_dashboard.twbx
+```
+
+or view the Tableau Public version after publishing.
+
+---
+
+# Limitations
+
+- Uses a **public academic dataset** rather than production logistics data.
+- Results demonstrate an analytical methodology rather than the performance of a real organization.
+- Warehouse and carrier groupings were simplified for readability and visualization.
+- Estimated financial impact (if included) uses proxy metrics rather than audited operational costs.
+
+---
+
+# Future Improvements
+
+Possible extensions include:
+
+- Predict SLA breaches using machine learning.
+- Forecast future carrier performance.
+- Add confidence intervals for breach rates.
+- Perform statistical significance testing between carriers.
+- Build an automated ETL pipeline.
+- Deploy the dashboard using Tableau Server or Power BI Service.
+- Integrate live shipment data from cloud databases.
+
+---
+
+# Skills Demonstrated
+
+- Data Cleaning
+- Exploratory Data Analysis (EDA)
+- SQL Aggregation
+- Root Cause Analysis
+- Statistical Analysis
+- Correlation Analysis
+- Time-Series Decomposition (STL)
+- Data Visualization
+- Dashboard Design
+- Business Intelligence
+- Storytelling with Data
+- End-to-End Analytics Workflow
+
+---
+
+## Author
+
+**Your Name**
+
+Data Analyst | SQL | Python | Tableau
+
+GitHub: https://github.com/yourusername
+
+LinkedIn: https://linkedin.com/in/yourprofile
